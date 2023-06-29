@@ -11,9 +11,45 @@
 
 #funcao
 jogar:
-testeLinha:
+testeLinha: 
+	move $s0, $s2    # $s0 = $s2 (i = p2) 
+	move $s2, $s1    # $s2 = $s1 (p2 = p1)
+	sub $s2, $s2, -1         # --p1 
+	li $t0, -1        # $t0 = -1
+	beq $s1, $t0, endlinha  # Se p1 != -1, salta para o endLinha
+		li $s1, 2   # p1 = 2
+	endlinha:
+	addi $s2, $s2, 1  # ++p2
+	li $t0, 3        # $t0 = 3
+	beq $s2, $t0, endLinha  # Se p2 == 3
+		li $s2, 0      # p2 = 0
+	endLinha:
+	????
 testeColuna:
+	move $s0, $s2    # $s0 = $s2 (i = p2) 
+	move $s2, $s1    # $s2 = $s1 (p2 = p1)
+	sub $s2, $s2, -1         # --p1 
+	li $t0, -1        # $t0 = -1
+	beq $s1, $t0, endcoluna  # Se p1 != -1, salta para o endLinha
+		li $s1, 2   # p1 = 2
+	endcoluna:
+	addi $s2, $s2, 1  # ++p2
+	li $t0, 3        # $t0 = 3
+	beq $s2, $t0, endColuna  # Se p2 == 3
+		li $s2, 0      # p2 = 0
+	endColuna:
+	????
 testeDiag1:
+	li $t0, -1        # $t0 = -1
+	beq $s1, $t0, endDiag1  # Se p1 != -1, salta para o endLinha
+		li $s1, 2   # p1 = 2
+	endDiag1:
+	addi $s2, $s2, 1  # ++p2
+	li $t0, 3        # $t0 = 3
+	beq $s2, $t0, enddiag1  # Se p2 == 3
+		li $s2, 0      # p2 = 0
+	enddiag1:
+	????
 testeDiag2:
 exibirtabuleiro:
 
@@ -45,7 +81,8 @@ exibirtabuleiro:
     			li $v0, 5                # Ler um inteiro
 			#tabuleiro[i][j] = 0; falta esta parte
     			syscall
-			
+			j loop
+		endLoop
 		 # função exibirtabuleiro(tabuleiro);
    			 la $a0, tabuleiro        # Carrega a matriz
    			 jal exibirtabuleiro      # exibirtabuleiro
