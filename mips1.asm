@@ -10,6 +10,14 @@
 	venceu1: .asciiz "Jogador 1 Venceu!!!"
 	venceu2: .asciiz "Jogador 2 Venceu!!!"
 	empate: .asciiz "Empate"
+	dd: .asciiz "Diag1 ee Diag2"
+	dig: .asciiz "Diag1"
+	dig2: .asciiz "Diag2"
+	linha: .asciiz "\n"
+	espaco: .asciiz " "
+	x: .asciiz "X"
+	o: .asciiz "O"
+	traco: .asciiz "|"
 	
 .text
 .global main
@@ -85,7 +93,7 @@ jogar:
     		move $v0, $zero     # retorna zero
 	endLinha:
 # Chamar a função testeColuna
-		move $a0, tabuleiro 
+		move $a0, tabuleiro # if(testeColuna(tabuleiro, s, p1, p2))
    		move $a1, $t5       # valor de s 
     		move $a2, $t0       # valor de p1 
     		move $a3, $t1       # valor de p2 
@@ -105,17 +113,96 @@ jogar:
 	#if(p1 == 1 && p2 == 1)
 		beq $t0, 1, label		# p1 == 1
    		j end                   # pula para o fim da função
-	p2:
+	label:
     		beq $t1, 1, diag1	     #p2 == 1
     		j end                        	     # fim da função
-	diagonal:
-	# Chame a função testeDiag1
-		jal testeDiag1
-    		move $t4, $v0   #resultado de testeDiag1 em $t4
-		beq $t4, 1, diag1_true
-		j diag1_false
-????????????????????????????????????????????????????????????????????
+	diag1:
+	# Chame a função testeDiag1 e testeDiag2
+		move $a0, tabuleiro # if(testeDiag1(tabuleiro, s, p1, p2))
+   		move $a1, $t5       # valor de s 
+    		move $a2, $t0       # valor de p1 
+    		move $a3, $t1       # valor de p2 
+    		jal testeDiag1      # Chamar a função testeDiag1
+		move $t6, $v0       # Armazenar resultado em $t6
+		bne $t6, $zero, diagonal  #teste
+		move $a0, tabuleiro # if(testeDiag2(tabuleiro, s, p1, p2))
+   		move $a1, $t5       # valor de s 
+    		move $a2, $t0       # valor de p1 
+    		move $a3, $t1       # valor de p2 
+    		jal testeDiag2      # Chamar a função testeDiag2
+		move $t6, $v0       # Armazenar resultado em $t6
+		bne $t6, $zero, diagonal #teste
 
+		j falso 	#se for falso 
+
+	diagonal: 
+		la $a0, dd
+   		li $v0, 4
+    		syscall
+
+		move $v0, $t5            #Retorna o valor de s 
+    		j enddiagonal              #Vai para o fim da função
+
+	else:
+    		move $v0, $zero     # retorna zero
+	enddiagonal:
+	#chama função testeDiag1
+		move $a2, $t0       # valor de p1 
+    		move $a3, $t1       # valor de p2 
+		beq $t0, $t1, Igual  #Compara
+		j finaL              # Salta para o final do código
+	Igual: 
+		move $a0, tabuleiro # if(testeDiag1(tabuleiro, s, p1, p2))
+   		move $a1, $t5       # valor de s 
+    		move $a2, $t0       # valor de p1 
+    		move $a3, $t1       # valor de p2 
+    		jal testeDiag1      # Chamar a função testeDiag1
+
+		beq $v0, IguaL  #Compara
+
+		la $a0, dig   
+    		li $v0, 4        
+    		syscall   
+
+		move $v0, $t5            #Retorna o valor de s 
+    		j endDiag1               #Vai para o fim da função
+
+	else:
+    		move $v0, $zero     # retorna zero
+
+	finaL:
+		#if((p1 == 2 && p2 == 0) || (p2 == 2 && p1 ==0)){
+		move $a2, $t0       # valor de p1 
+    		move $a3, $t1       # valor de p2 
+		li $t7, 2
+		li $t8, 0
+		beq $t0, $t7, cond1 # p1 == 2
+		j cond2
+	cond1: 
+		beq $t1, $t8, cond1e2True # p2 == 0
+		j Conde2
+	Conde2: 
+		beq $t1, $t2, cond2True # p2 == 2
+		j endcond	
+	Conde2: 
+		beq $t0, $t7, cond1e2True # p1 == 0
+		j endcond
+	cond2True: # if(testeDiag2(tabuleiro, s, p1, p2))
+		move $a0, tabuleiro # if(testeDiag2(tabuleiro, s, p1, p2))
+   		move $a1, $t5       # valor de s 
+    		move $a2, $t0       # valor de p1 
+    		move $a3, $t1       # valor de p2 
+    		jal testeDiag2      # Chamar a função testeDiag2
+		beqz $v0, endcond	# Se zero
+
+		la $a0, dig2   
+    		li $v0, 4        
+    		syscall  
+		move $v0, $t5            #Retorna o valor de s 
+    		j endDiag2               #Vai para o fim da função
+	else:
+    		move $v0, $zero     # retorna zero
+	endDiag2:
 testeLinha: 
 		lw $t7, i     # Carrega o endereço de i em $t3
 		move $s0, $s2    # $s0 = $s2 (i = p2) 
@@ -226,19 +313,66 @@ testeDiag2:
 		j exit # jump to exit
 	diag22:
 		sub $s2, $s2, 1 # remove o +1 do p2
-????????
 
-exibirtabuleiro:
 
+	exibirtabuleiro:
+		li $t2, 0 		#Iniciando i em 0 
+		li $t3, 0 		#Iniciando j em 0 
+
+		beq $t2, 3, FIM		# se i == 3 encerra
+		addi $t2, $t2, 1  	# i++
+
+		la $a0, linha
+   		li $v0, 4         
+    		syscall
+
+		la $a0, espaco
+   		li $v0, 4         
+    		syscall
+
+		beq $t3, 3, FIM		# se j == 3 encerra
+		addi $t3, $t3, 1  	# j++
+
+	#switch(tabuleiro[i][j]){
+		beq $t0, 1, case_1
+		beq $t0, 2, case_2
+		j default
+	case_1:
+		la $a0, x
+	    	li $v0, 4
+    		syscall
+    		j end_switch
+	case_2:
+		la $a0, o
+	    	li $v0, 4
+    		syscall
+    		j end_switch
+	default:
+		la $a0, espaco
+		li $v0, 4
+		syscall
+		j end_switch
+	end_switch:
+	#if (j < 2){
+		li $t8, 2
+		slt $t9, $t3, $t8  #$t3 = j, $t8 = 2  -> j < 2
+		beqz $t9, ELSE 		# condução falsa
+
+		la $a0, traco
+	    	li $v0, 4
+    		syscall
+
+	ELSE:
+		la $a0, traco
+	    	li $v0, 4
+    		syscall
+	FIM:
 #main
 	li $t0, 0 		#p1;
 	li $t1, 0 		#p2; 
 	li $t2, 0 		#i; 
 	li $t3, 0 		#j;
 	jal jogar		#chama a função 
-	
-	jogar: 
-		
 			
 		loop:
   		  	beq $t0, $zero, endLoop  # Verifica se $t0 é igual a zero   for(i = 0;i < 3;i++){
@@ -275,8 +409,3 @@ exibirtabuleiro:
 			beq $t2, 1, venceu1 # if(i == 1)   printf("Jogador 1 Venceu!!!")
 			beq $t2, 2, venceu2 # else if(i == 2){ printf("Jogador 2 Venceu!!!");
 			la $a0, empate	#    else  printf("Empate");
-			
-		
-
- 
-		
