@@ -313,8 +313,33 @@ testeDiag2:
 		j exit # jump to exit
 	diag22:
 		sub $s2, $s2, 1 # remove o +1 do p2
+		#if(tabuleiro[i+1][j-1] == tabuleiro[p1-1][p2+1] && tabuleiro[p1-1][p2+1] == s){
+		la $t1, tabuleiro  	# Endereço base do tabuleiro
+		add $s0, $s0, 1		#i+1
+		sub $s3, $s3, 1		#j-1
+		sub $s1, $s1, 1		#p1-1
+		add $s2, $s2, 1		#p2+1
+		add $s4, $s0, $s3	# tabuleiro[i+1][j-1]
+		lw $t4, 0($t4)          # $t4 = tabuleiro[i+1][j-1]
 
+		sub $s5, $s0, 1		#i-1
+		add $s6, $s3, 1		#j+1
+		add $s7, $s1, 1		#p1+1
+		sub $s8, $s2, 1		#p2-1
+		add $s8, $s0, $s3	# tabuleiro[i+1][j-1]
+		lw $t8, 0($t8)          # $t8 = tabuleiro[p1-1][p2+1]
 
+		beq $t4, $t8, Compa
+		j fiM
+	Compa:
+		beq $t4, $s, return_s
+		j fiM
+	return_s:
+		add $v0, $s, $zero       # $v0 = s 
+		j end       
+	fiM:
+		add $v0, $zero, 0       # $v0 = 0
+	end:
 	exibirtabuleiro:
 		li $t2, 0 		#Iniciando i em 0 
 		li $t3, 0 		#Iniciando j em 0 
