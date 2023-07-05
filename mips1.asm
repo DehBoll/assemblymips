@@ -47,7 +47,7 @@ jogar:
 
 		sub $t0, $t0, 1         # --p1
 		sub $t1, $t1, 1         # --p2
-
+	#if (tabuleiro[--p1][--p2] != 0){
 		sll $t2, $t0, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t2, $t2, $t1 	# Adiciona o deslocamento p2
 		sll $t2, $t2, 2   	# Multiplicar p2 pela potência de 2 para o deslocamento em bytes
@@ -216,13 +216,14 @@ testeLinha:
 		li $t0, 3        # $t0 = 3
 		beq $s2, $t0, endLinha  # Se p2 == 3
 		li $s2, 0      # p2 = 0
-	endLinha:
+	endLinha: 
+	# if(tabuleiro[p1][i] == tabuleiro[p2][i] && tabuleiro[p2][i] == s)
 		la $t1, tabuleiro 	 # Endereço base do tabuleiro
-		sll $t2, $p1, 2    	 # Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t2, $s1, 2    	 # Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t2, $t2, $t1  	 # Adicionar o deslocamento ao endereço base
 		add $t2, $tabuleiro, $t2 # Calcula o endereço de tabuleiro[p1][i]
 		lw $t4, ($t2)		 #tabuleiro[p1][i]
-		sll $t3, $p3, 2    	 # Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t3, $t3, 2    	 # Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t3, $t3, $t2  	 # Adicionar o deslocamento ao endereço base
 		add $t3, $tabuleiro, $t3 # Calcula o endereço de tabuleiro[p2][i]
 		lw $t5, ($t3)		#tabuleiro[p2][i]
@@ -253,20 +254,19 @@ testeColuna:
 		li $t0, 3        # $t0 = 3
 		beq $s2, $t0, endColuna  # Se p2 == 3
 		li $s2, 0      # p2 = 0
-	endColuna:
+	endColuna: 
+	#if(tabuleiro[i][p1] == tabuleiro[i][p2] && tabuleiro[i][p2] == s)
 		la $t1, tabuleiro  	# Endereço base do tabuleiro
-		sll $t2, $p1, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t2, $s1, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t2, $t2, $t1  	# Adicionar o deslocamento ao endereço base
-		sll $t2, $p1, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t2, $s1, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t2, $t2, $t1  	# Adicionar o deslocamento ao endereço base
 		lw $t4, ($t2)		#tabuleiro[p1][i]
 
-		sll $t3, $p3, 2    	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t3, $t3, 2    	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t3, $t3, $t2  	# Adicionar o deslocamento ao endereço base
-		sll $t3, $p3, 2    	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t3, $t3, 2    	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t3, $t3, $t2  	# Adicionar o deslocamento ao endereço base
-
-		
 		
 		lw $t5, ($t3)		#tabuleiro[p2][i]
 		beq $t4, $t5, check_s	#Comparação de tabuleiro[p1][i] e tabuleiro[p2][i] #O rótulo check_s é usado em conjunto com as instruções beq (branch equal) e j (jump).
@@ -292,10 +292,11 @@ testeDiag1:
 		beq $s2, $t0, enddiag1  # Se p2 == 3
 		li $s2, 0      # p2 = 0
 	enddiag1:
+		# if(tabuleiro[p2][p2] == tabuleiro[p1][p1] && tabuleiro[p1][p1] == s){
 		la $t1, tabuleiro  	# Endereço base do tabuleiro
-		sll $t2, $p1, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t2, $s1, 2   	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t2, $t2, $t1  	# Adicionar o deslocamento ao endereço base
-		sll $t3, $p3, 2    	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
+		sll $t3, $t3, 2    	# Multiplicar p1 pela potência de 2 para o deslocamento em bytes
 		add $t3, $t3, $t2  	# Adicionar o deslocamento ao endereço base
 testeDiag2:
 		move $s0, $s1 # $s0 = $s1 (i = p1)
@@ -332,15 +333,16 @@ testeDiag2:
 		beq $t4, $t8, Compa
 		j fiM
 	Compa:
-		beq $t4, $s, return_s
+		beq $t4, $t5, return_s
 		j fiM
 	return_s:
-		add $v0, $s, $zero       # $v0 = s 
+		move $v0, $t5       # $v0 = s 
 		j end       
 	fiM:
 		add $v0, $zero, 0       # $v0 = 0
 	end:
-	exibirtabuleiro:
+
+exibirtabuleiro:
 		li $t2, 0 		#Iniciando i em 0 
 		li $t3, 0 		#Iniciando j em 0 
 
