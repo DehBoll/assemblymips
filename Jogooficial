@@ -1,0 +1,341 @@
+.data
+	tabuleiro: .word 0, 0, 0   # First row
+       		   .word 0, 0, 0   # Second row
+		   .word 0, 0, 0   # Third row
+	p1: .word 0   # p1 
+	p2: .word 0   # p2 
+	j: .word 0    # j 
+	i: .word 1    # i com o valor 1
+	msg: .asciiz "Digite A Posicao Na Qual Vc Quer Jogar"
+	invalido: .asciiz "Posicao Invalida"
+	coluna: .asciiz "Coluna"
+	venceu1: .asciiz "Jogador 1 Venceu!!!"
+	venceu2: .asciiz "Jogador 2 Venceu!!!"
+	empate: .asciiz "Empate"
+	dd: .asciiz "Diag1 ee Diag2"
+	dig: .asciiz "Diag1"
+	dig2: .asciiz "Diag2"
+	linha: .asciiz "\n"
+	espaco: .asciiz " "
+	x: .asciiz "X"
+	o: .asciiz "O"
+	traco: .asciiz "|"
+
+	li $s0, 0 		#p1;
+	li $s1, 0 		#p2; 
+	li $s2, 0 		#i; 
+	li $s3, 0 		#j;
+				#$v1 = s
+				#s4 = cp1
+				#s5 = cp2
+				#a1 = retorno
+	
+.text
+.globl main
+
+main:
+    		la $s7, tabuleiro        # Iniciando tabuleiro
+
+    		li $v0, 1             # Carrega valor 1 
+   		li $t2, 9             # Carrega valor 9
+   		li $v0, 10           
+		
+		 # funÃƒÂ§ÃƒÂ£o exibirtabuleiro(tabuleiro);
+		li $v1, 0
+		li $s6, 9
+		LOOP:
+		bne $v1, 0, final
+		ble $s6, 0, final
+		li $v1, 1
+		j jogar
+		rjogar:
+	#	beq $v1, 1, final
+	#	li $v1, 2
+	#	j jogar2
+	#	rjogar2:
+		j LOOP
+		final:
+		bne $v1, 1, v1
+		la $a0, venceu1
+		li $v0, 4
+		syscall
+		li $v0 10
+		syscall
+		v1:
+		bne $v1, 2, v2
+		la $a0, venceu2
+		li $v0, 4
+		syscall
+		li $v0 10
+		syscall
+		v2:
+		la $a0, empate
+		li $v0, 4
+		syscall
+		li $v0 10
+		syscall
+
+jogar:
+		li $s2, 0
+		whileloop:
+		bne $s2,0 endwhile
+		la $a0, msg
+		li $v0, 4
+		syscall
+		
+		li $v0, 5 		#Ler p1
+		syscall			#executa
+		move $s0, $v0 		#move o valor de $v0 para $t0  ou seja p1 = valor;
+			
+		li $v0, 5 		#Ler p2
+		syscall			#executa
+		move $s1, $v0 
+		
+		sub $s0, $s0, 1         # --p1
+		sub $s1, $s1, 1    	# --p2
+		
+		li $t9, 0
+		add $t9, $t9, $s0   		# Adiciona o Deslocamento do i
+		add $t9, $t9, $s1	# Adiciona o deslocamento j
+		sll $t9, $t9, 2   	# Multiplicar p2 pela potÃƒÂªncia de 2 para o deslocamento em bytes
+		addu $t9, $t9, $s7 	# Calcula o endereÃƒÂ§o de tabuleiro[i][j]
+		lw $t4, ($t9)    
+		
+		beq $t4, 0, else
+		la $a0, invalido
+		li $v0, 4
+		syscall
+		li $s2, 0
+		j whileloop
+		else:
+		li $s2, 1
+		j whileloop
+		endwhile:
+		sw $v1, ($t9)
+		j testelinha
+		rtestelinha:
+		bne $a1, 1, jtestelinha
+		j rjogar
+		
+		jtestelinha:
+		j testecoluna
+		rtestecoluna:
+		bne $a1, 1, jtestecoluna
+		j rjogar
+		
+		jtestecoluna:
+		#if(p1 == 1 && p2 == 1) ainda não implementado
+		bne $s1, $s0, cdiag2
+		j testediag1
+		rtestediag1:
+		bne $a1, 1, jtestediag1
+		j rjogar
+		
+		jtestediag1:
+		cdiag2:
+		bne $s0, 2, cdiag3
+		bne $s1, 0, cdiag3
+		Or:
+		j testediag2
+		rtestediag2:
+		bne $a1, 1 , jtestediag2
+		j rjogar
+		cdiag3:
+		bne $s1, 2, cdiag4
+		bne $s0, 0, cdiag4
+		j Or
+		cdiag4:
+		jtestediag2:
+		
+		li $v1, 0
+		j rjogar
+testediag1: 				
+		move $s4, $s0
+		move $s5, $s1
+		sub $s4, $s4,1
+		bne $s4, -1, d11
+			li $s4, 2
+		d11:
+		add $s5, $s5,1
+		bne $s5, 3, d12
+			li $s5, 0
+		d12:
+		li $t9, 0
+		add $t9, $t9, $s4
+		add $t9, $t9, $s4
+		sll $t9, $t9, 2
+		addu $t9, $t9, $s7
+		lw $t4, ($t9)	
+		
+		li $t9, 0
+		add $t9, $t9, $s5
+		add $t9, $t9, $s5
+		sll $t9, $t9, 2
+		addu $t9, $t9, $s7
+		lw $t5, ($t9)	
+		
+		bne $t4, $t5, d1f
+		bne $t4, $v1, d1f
+		li $a1, 1
+		j rtestediag1
+		d1f:
+		li $a1, 0
+		j rtestediag1
+
+testediag2:
+		
+		move $s2, $s0
+		move $s3, $s1
+		move $s4, $s0
+		move $s5, $s1
+		add $s4, $s4, 1
+		bne $s4, 3, d21
+			li $s2, -1
+			li $s3, 3
+		d21:
+		sub $s4, $s4, 1
+		add $a1, $s5, 1
+		bne $a1, 3, d22
+			li $s4, 3
+			li $s5, -1
+		d22:
+		add $s2, $s2, 1
+		sub $s3, $s3, 1
+		sub $s4, $s4, 1
+		add $s5, $s5, 1
+		
+		li $t9, 0
+		add $t9, $t9, $s2
+		add $t9, $t9, $s3
+		sll $t9, $t9, 2
+		addu $t9, $t9, $s7
+		lw $t4, ($t9)
+		
+		li $t9, 0
+		add $t9, $t9, $s4
+		add $t9, $t9, $s5
+		sll $t9, $t9, 2
+		addu $t9, $t9, $s7
+		lw $t5, ($t9)
+		
+		bne $t4, $t5, d2f
+		bne $t4, $v1, d2f
+		li $a1, 1
+		j rtestediag2
+		d2f:
+		li $a1, 0
+		j rtestediag2
+testecoluna: 
+		move $s2, $s0
+		move $s4, $s1
+		move $s5, $s1
+		sub $s4, $s4,1
+		bne $s4, -1, c1
+			li $s4, 2
+		c1:
+		add $s5, $s5,1
+		bne $s5, 3, c2
+			li $s5, 0
+		c2:	
+		li $t9, 0
+		add $t9, $t9, $s2
+		add $t9, $t9, $s4
+		sll $t9, $t9, 2
+		addu $t9, $t9, $s7
+		lw $t4, ($t9)
+		
+		li $t9, 0
+		add $t9, $t9, $s2
+		add $t9, $t9, $s5
+		sll $t9, $t9, 2
+		addu $t9, $t9, $s7
+		lw $t5, ($t9)
+		
+		bne $t4, $t5, cf
+		bne $t4, $v1, cf
+		li $a1, 1
+		j rtestecoluna
+		cf:
+		li $a1, 0
+		j rtestecoluna
+		
+testelinha:    
+		move $s2, $s1
+		move $s5, $s0
+		move $s4, $s0
+		sub $s4, $s4,1
+		bne $s4, -1, l1
+			li $s4, 2
+		l1:
+		add $s5, $s5,1
+		bne $s5, 3, l2
+			li $s5, 0
+		l2:
+		li $t9, 0
+		add $t9, $t9, $s4   		
+		add $t9, $t9, $s2	
+		sll $t9, $t9, 2   	
+		addu $t9, $t9, $s7 	
+		lw $t4, ($t9)
+		
+		li $t9, 0
+		add $t9, $t9, $s5   		
+		add $t9, $t9, $s2	
+		sll $t9, $t9, 2   	
+		addu $t9, $t9, $s7 	
+		lw $t5, ($t9)
+		
+		bne $t4, $t5, lf
+		bne $t4, $v1, lf
+		li $a1, 1
+		j rtestelinha
+		lf:
+		li $a1, 0
+		j rtestelinha
+exibirtabuleiro:
+		li $t2, 0 		#Iniciando i em 0 
+		loop1:
+		bge  $t2,3,end1		# se i == 3 encerra	# i++
+		li $t3, 0  	      #$a0
+		loop2:
+		bge  $t3, 3, end2
+		li $t9, 0
+		add $t9, $t9, $t2   		# Adiciona o Deslocamento do i
+		add $t9, $t9, $t3	# Adiciona o deslocamento j
+		sll $t9, $t9, 2   	# Multiplicar p2 pela potÃƒÂªncia de 2 para o deslocamento em bytes
+		addu $t9, $t9, $s7 	# Calcula o endereÃƒÂ§o de tabuleiro[i][j]
+		lw $t4, ($t9)    	# Carrega o valor de tabuleiro[i][j] em $t4
+	#switch(tabuleiro[i][j]){
+		beq $t4, 1, case_1
+		beq $t4, 2, case_2
+		j default
+	case_1:
+		la $a0, 'x'
+	    	li $v0, 11
+    		syscall
+    		j end_switch
+	case_2:
+		la $a0, 'o'
+	    	li $v0, 11
+    		syscall
+    		j end_switch
+	default:
+		la $a0, 32
+		li $v0, 11
+		syscall
+		j end_switch
+	end_switch:
+	#if (j < 2){
+		li $t8, 2
+		bge $t3, 2, NTRACO  #$t3 = j, $t8 = 2  -> j < 2
+		la $a0, traco
+	    	li $v0, 4
+    		syscall
+	NTRACO:
+	addi $t3, $t3, 1
+	j loop2	
+	end2:
+	addi $t2, $t2, 1 
+	j loop1
+	end1:
+	FIM:
